@@ -1,0 +1,427 @@
+.page {
+  min-height: 100vh;
+  padding: 4rem 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  width: 100%;
+  max-width: 1200px;
+  padding: 0 1rem;
+}
+
+.title {
+  color: var(--primary-color);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 2.5rem;
+  text-shadow: 0 0 10px rgba(0, 112, 243, 0.5);
+  margin-bottom: 0.5rem;
+  font-weight: var(--font-weight);
+}
+
+.subtitle {
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+  font-weight: var(--font-weight);
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  background: var(--panel-bg);
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 0 20px var(--panel-shadow);
+  border: 1px solid var(--panel-border);
+  width: 100%;
+}
+
+.columns {
+  display: flex;
+  gap: 2rem;
+  width: 100%;
+  justify-content: center;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  width: 300px;
+  background: rgba(30, 30, 30, 0.6);
+  transition: all 0.3s ease;
+}
+
+.column.active {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 20px rgba(0, 112, 243, 0.3);
+  transform: translateY(-5px);
+}
+
+.columnTitle {
+  margin: 0;
+  color: var(--primary-color);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 1.3rem;
+  font-weight: 500;
+  color: var(--text-color);
+  margin-bottom: 0.8rem;
+  text-align: center;
+  font-family: var(--font-family);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.column.active .columnTitle {
+  color: #00f2fe;
+  text-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+}
+
+.shapeButtons {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  justify-content: center;
+  width: 100%;
+}
+
+.shapeButton {
+  width: 60px;
+  height: 60px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: rgba(0, 112, 243, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.shapeButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(0, 112, 243, 0.2),
+    rgba(0, 255, 255, 0.2),
+    rgba(0, 112, 243, 0.2),
+    transparent
+  );
+  background-size: 400% 400%;
+  animation: neonGradient 3s ease infinite;
+  z-index: 1;
+}
+
+.shapeButton::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(
+    45deg,
+    #00f2fe,
+    #4facfe,
+    #00f2fe
+  );
+  background-size: 200% 200%;
+  animation: borderGlow 2s ease infinite;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.shapeButton:hover::after {
+  opacity: 1;
+}
+
+@keyframes neonGradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes borderGlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.shapeButton.selected {
+  transform: scale(1.1);
+  border: 2px solid var(--primary-color);
+  background-color: rgba(0, 112, 243, 0.4);
+}
+
+.shapeButton.selected::after {
+  opacity: 1;
+  animation: borderGlow 1.5s ease infinite;
+}
+
+.shapeButton.dimmed {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.mainShape {
+  width: 150px;
+  height: 150px;
+  background-color: rgba(0, 112, 243, 0.2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s ease;
+  border: 1px solid var(--panel-border);
+  box-shadow: 0 0 15px rgba(0, 112, 243, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.mainShape.circle {
+  border-radius: 50%;
+}
+
+.mainShape.triangle {
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+.mainShape.square {
+  border-radius: 0;
+}
+
+.mainShape::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(
+    45deg,
+    #00f2fe,
+    #4facfe,
+    #00f2fe
+  );
+  background-size: 200% 200%;
+  animation: borderGlow 2s ease infinite;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.mainShape.selected::after {
+  opacity: 1;
+}
+
+.mainShape.selected {
+  transform: scale(1.05);
+  border: 2px solid var(--primary-color);
+  background-color: rgba(0, 112, 243, 0.4);
+  box-shadow: 0 0 20px rgba(0, 112, 243, 0.3);
+}
+
+.subShapes {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.subShape {
+  width: 70px;
+  height: 70px;
+  background-color: rgba(0, 112, 243, 0.2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s ease;
+  border: 1px solid var(--panel-border);
+  box-shadow: 0 0 10px rgba(0, 112, 243, 0.1);
+}
+
+.circle {
+  border-radius: 50%;
+}
+
+.triangle {
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+.square {
+  border-radius: 0;
+}
+
+.button {
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  background: linear-gradient(45deg, var(--primary-color), var(--primary-dark));
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: bold;
+  box-shadow: 0 0 15px rgba(0, 112, 243, 0.3);
+}
+
+.button:hover {
+  background: linear-gradient(45deg, var(--primary-dark), var(--primary-color));
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(0, 112, 243, 0.5);
+}
+
+.sectionTitle {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+  text-align: center;
+  font-family: var(--font-family);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 0 0 10px rgba(0, 112, 243, 0.3);
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+
+.sectionTitle::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+}
+
+.modeToggle {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.toggleButton {
+  padding: 0.5rem 1.5rem;
+  font-size: 1rem;
+  background: rgba(0, 112, 243, 0.1);
+  color: var(--text-color);
+  border: 1px solid var(--primary-color);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 500;
+}
+
+.toggleButton:hover {
+  background: rgba(0, 112, 243, 0.2);
+  transform: translateY(-2px);
+}
+
+.toggleButton.active {
+  background: var(--primary-color);
+  color: white;
+  box-shadow: 0 0 15px rgba(0, 112, 243, 0.3);
+}
+
+.toggleButton.active:hover {
+  background: var(--primary-color);
+  box-shadow: 0 0 20px rgba(0, 112, 243, 0.5);
+}
+
+.subShapeButtons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 0.5rem;
+}
+
+.subShapeButton {
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  border: 0;
+}
+
+.subShapeButton:hover {
+  transform: translateY(-2px);
+}
+
+.subShapeButton .circle,
+.subShapeButton .triangle,
+.subShapeButton .square {
+  width: 30px;
+  height: 30px;
+  background-color: rgba(0, 112, 243, 0.2);
+  margin: 0;
+  border: 0;
+  transition: all 0.3s ease;
+}
+
+.subShapeButton:hover .circle,
+.subShapeButton:hover .triangle,
+.subShapeButton:hover .square {
+  background-color: var(--primary-color);
+  transform: scale(1.1);
+}
+
+.subShapeButton .circle {
+  border-radius: 50%;
+}
+
+.subShapeButton .triangle {
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+.subShapeButton .square {
+  border-radius: 0;
+} 
