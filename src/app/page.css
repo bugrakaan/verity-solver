@@ -1,5 +1,4 @@
 .page {
-  min-height: 100vh;
   padding: 4rem 0;
   flex: 1;
   display: flex;
@@ -19,22 +18,38 @@
   padding: 0 1rem;
 }
 
+.titleContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25em;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.titleIcon {
+  border-radius: 8px;
+  width: 80px !important;
+  height: 80px !important;
+  margin-bottom: 1.5em;
+  filter: drop-shadow(0 0 10px rgba(255, 107, 0, 0.5));
+}
+
 .title {
-  color: var(--primary-color);
-  text-transform: uppercase;
-  letter-spacing: 2px;
+  margin: 0;
   font-size: 2.5rem;
-  text-shadow: 0 0 10px rgba(0, 112, 243, 0.5);
-  margin-bottom: 0.5rem;
-  font-weight: var(--font-weight);
+  font-weight: 700;
+  color: var(--primary-color);
+  text-shadow: 0 0 10px rgba(255, 107, 0, 0.3);
 }
 
 .subtitle {
-  color: #fff;
+  color: var(--primary-color-light);
   text-transform: uppercase;
   letter-spacing: 1px;
-  font-size: 1.5rem;
-  margin-bottom: 2rem;
+  font-size: 14px;
+  text-align: center;
   font-weight: var(--font-weight);
 }
 
@@ -67,13 +82,13 @@
   border: 1px solid var(--panel-border);
   border-radius: 8px;
   width: 300px;
-  background: rgba(30, 30, 30, 0.6);
+  background: rgba(20, 20, 20, 0.6);
   transition: all 0.3s ease;
 }
 
 .column.active {
   border-color: var(--primary-color);
-  box-shadow: 0 0 20px rgba(0, 112, 243, 0.3);
+  box-shadow: 0 0 20px rgba(255, 107, 0, 0.3);
   transform: translateY(-5px);
 }
 
@@ -106,8 +121,8 @@
 }
 
 .column.active .columnTitle {
-  color: #00f2fe;
-  text-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+  color: var(--primary-color-light);
+  text-shadow: 0 0 10px rgba(255, 107, 0, 0.5);
 }
 
 .shapeButtons {
@@ -124,7 +139,7 @@
   border: none;
   cursor: pointer;
   transition: all 0.3s ease;
-  background-color: rgba(0, 112, 243, 0.2);
+  background-color: rgba(255, 107, 0, 0.2);
   position: relative;
   overflow: hidden;
 }
@@ -139,9 +154,9 @@
   background: linear-gradient(
     45deg,
     transparent,
-    rgba(0, 112, 243, 0.2),
-    rgba(0, 255, 255, 0.2),
-    rgba(0, 112, 243, 0.2),
+    rgba(255, 107, 0, 0.2),
+    rgba(255, 163, 102, 0.2),
+    rgba(255, 107, 0, 0.2),
     transparent
   );
   background-size: 400% 400%;
@@ -158,9 +173,9 @@
   bottom: -2px;
   background: linear-gradient(
     45deg,
-    #00f2fe,
-    #4facfe,
-    #00f2fe
+    var(--primary-color-light),
+    var(--primary-color),
+    var(--primary-color-light)
   );
   background-size: 200% 200%;
   animation: borderGlow 2s ease infinite;
@@ -200,7 +215,7 @@
 .shapeButton.selected {
   transform: scale(1.1);
   border: 2px solid var(--primary-color);
-  background-color: rgba(0, 112, 243, 0.4);
+  background-color: rgba(255, 107, 0, 0.4);
 }
 
 .shapeButton.selected::after {
@@ -216,13 +231,13 @@
 .mainShape {
   width: 150px;
   height: 150px;
-  background-color: #0070f3bf;
+  background-color: rgba(255, 107, 0, 0.2);
   display: flex;
   justify-content: center;
   align-items: center;
   transition: all 0.3s ease;
   border: 1px solid var(--panel-border);
-  box-shadow: 0 0 15px rgba(0, 112, 243, 0.1);
+  box-shadow: 0 0 15px rgba(255, 107, 0, 0.1);
   position: relative;
   overflow: hidden;
 }
@@ -248,9 +263,9 @@
   bottom: -2px;
   background: linear-gradient(
     45deg,
-    #00f2fe,
-    #4facfe,
-    #00f2fe
+    var(--primary-color-light),
+    var(--primary-color),
+    var(--primary-color-light)
   );
   background-size: 200% 200%;
   animation: borderGlow 2s ease infinite;
@@ -266,8 +281,8 @@
 .mainShape.selected {
   transform: scale(1.05);
   border: 2px solid var(--primary-color);
-  background-color: rgba(0, 112, 243, 0.4);
-  box-shadow: 0 0 20px rgba(0, 112, 243, 0.3);
+  background-color: rgba(255, 107, 0, 0.4);
+  box-shadow: 0 0 20px rgba(255, 107, 0, 0.3);
 }
 
 .subShapes {
@@ -281,13 +296,13 @@
 .subShape {
   width: 70px;
   height: 70px;
-  background-color: rgba(0, 112, 243, 0.2);
+  background-color: rgba(255, 107, 0, 0.2);
   display: flex;
   justify-content: center;
   align-items: center;
   transition: all 0.3s ease;
   border: 1px solid var(--panel-border);
-  box-shadow: 0 0 10px rgba(0, 112, 243, 0.1);
+  box-shadow: 0 0 10px rgba(255, 107, 0, 0.1);
 }
 
 .circle {
@@ -303,25 +318,20 @@
 }
 
 .button {
-  padding: 0.8rem 1.5rem;
-  font-size: 1rem;
-  background: linear-gradient(45deg, var(--primary-color), var(--primary-dark));
+  margin-top: 40px;
+  padding: 10px 20px;
+  background-color: var(--primary-color);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-weight: bold;
-  box-shadow: 0 0 15px rgba(0, 112, 243, 0.3);
+  font-size: 16px;
+  transition: background-color 0.3s ease;
   font-family: var(--font-mono);
 }
 
 .button:hover {
-  background: linear-gradient(45deg, var(--primary-dark), var(--primary-color));
-  transform: translateY(-2px);
-  box-shadow: 0 0 20px rgba(0, 112, 243, 0.5);
+  background-color: var(--primary-color-dark);
 }
 
 .sectionTitleContainer {
@@ -342,12 +352,12 @@
 .sectionTitle {
   margin: 0;
   font-size: 1.5rem;
-  color: #fff;
+  color: var(--primary-color);
 }
 
 .refreshButton {
-  background: #2c2c2c;
-  border: 1px solid #404040;
+  background: rgba(20, 20, 20, 0.8);
+  border: 1px solid var(--panel-border);
   border-radius: 50%;
   width: 32px;
   height: 32px;
@@ -355,7 +365,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #fff;
+  color: var(--primary-color);
   font-size: 18px;
   transition: all 0.2s ease;
   padding: 0;
@@ -363,12 +373,12 @@
 }
 
 .refreshButton:hover {
-  background: #404040;
+  background: rgba(255, 107, 0, 0.2);
   transform: rotate(180deg);
 }
 
 .refreshButton:active {
-  background: #505050;
+  background: rgba(255, 107, 0, 0.3);
   transform: rotate(180deg) scale(0.95);
 }
 
@@ -382,7 +392,7 @@
 .toggleButton {
   padding: 0.5rem 1.5rem;
   font-size: 1rem;
-  background: rgba(0, 112, 243, 0.1);
+  background: rgba(255, 107, 0, 0.1);
   color: var(--text-color);
   border: 1px solid var(--primary-color);
   border-radius: 4px;
@@ -395,19 +405,19 @@
 }
 
 .toggleButton:hover {
-  background: rgba(0, 112, 243, 0.2);
+  background: rgba(255, 107, 0, 0.2);
   transform: translateY(-2px);
 }
 
 .toggleButton.active {
   background: var(--primary-color);
   color: white;
-  box-shadow: 0 0 15px rgba(0, 112, 243, 0.3);
+  box-shadow: 0 0 15px rgba(255, 107, 0, 0.3);
 }
 
 .toggleButton.active:hover {
   background: var(--primary-color);
-  box-shadow: 0 0 20px rgba(0, 112, 243, 0.5);
+  box-shadow: 0 0 20px rgba(255, 107, 0, 0.5);
 }
 
 .subShapeButtons {
@@ -415,13 +425,15 @@
   gap: 0.5rem;
   justify-content: center;
   margin-top: 0.5rem;
+  border: 2px solid transparent;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
 }
 
 .subShapeButtons.active {
-  border: 2px solid var(--primary-color);
-  padding: 8px;
-  border-radius: 8px;
-  background: rgba(0, 112, 243, 0.1);
+  border-color: var(--primary-color);
+  background: rgba(255, 107, 0, 0.1);
 }
 
 .subShapeButton {
@@ -447,7 +459,7 @@
 .subShapeButton .square {
   width: 30px;
   height: 30px;
-  background-color: rgba(0, 112, 243, 0.2);
+  background-color: rgba(255, 107, 0, 0.2);
   margin: 0;
   border: 0;
   transition: all 0.3s ease;
@@ -556,7 +568,7 @@
 }
 
 .transferButton:hover {
-  background: var(--primary-dark);
+  background: var(--primary-color-dark);
 }
 
 .transferHistory {
@@ -579,7 +591,7 @@
 
 .historyItem {
   padding: 5px 10px;
-  background: white;
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 4px;
   font-size: 0.9em;
   color: var(--text-color);
@@ -701,12 +713,12 @@
 
 .status.success {
   background: rgba(0, 255, 0, 0.1);
-  color: green;
+  color: #00ff00;
 }
 
 .status.pending {
   background: rgba(255, 165, 0, 0.1);
-  color: orange;
+  color: var(--primary-color);
 }
 
 .solutionSummary {
@@ -733,7 +745,7 @@
 }
 
 .playerSolution {
-  background: white;
+  background: rgba(255, 255, 255, 0.05);
   padding: 15px;
   border-radius: 6px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -801,7 +813,7 @@
 .playerNameInput {
   width: 80%;
   padding: 8px 12px;
-  border: 1px solid rgba(0, 112, 243, 0.3);
+  border: 1px solid rgba(255, 107, 0, 0.3);
   border-radius: 4px;
   font-size: 1em;
   color: var(--text-color);
@@ -816,7 +828,7 @@
   outline: none;
   background: rgba(0, 0, 0, 0.2);
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(0, 112, 243, 0.2);
+  box-shadow: 0 0 0 2px rgba(255, 107, 0, 0.2);
 }
 
 .playerNameInput::placeholder {
@@ -840,7 +852,7 @@
 }
 
 .noDoublesCheckbox label {
-  color: #fff;
+  color: var(--text-color);
   font-size: 0.9rem;
   cursor: pointer;
   user-select: none;
@@ -887,13 +899,13 @@
   border: 1px solid var(--panel-border);
   border-radius: 8px;
   width: 300px;
-  background: rgba(30, 30, 30, 0.6);
+  background: rgba(20, 20, 20, 0.6);
   transition: all 0.3s ease;
 }
 
 .startingShapes .column.active {
   border-color: var(--primary-color);
-  box-shadow: 0 0 20px rgba(0, 112, 243, 0.3);
+  box-shadow: 0 0 20px rgba(255, 107, 0, 0.3);
   transform: translateY(-5px);
 }
 
@@ -930,13 +942,13 @@
   border: 1px solid var(--panel-border);
   border-radius: 8px;
   width: 300px;
-  background: rgba(30, 30, 30, 0.6);
+  background: rgba(20, 20, 20, 0.6);
   transition: all 0.3s ease;
 }
 
 .playerShapes .column.active {
   border-color: var(--primary-color);
-  box-shadow: 0 0 20px rgba(0, 112, 243, 0.3);
+  box-shadow: 0 0 20px rgba(255, 107, 0, 0.3);
   transform: translateY(-5px);
 }
 
@@ -1018,18 +1030,18 @@
   border: 1px solid var(--panel-border);
   border-radius: 8px;
   width: 300px;
-  background: rgba(30, 30, 30, 0.6);
+  background: rgba(20, 20, 20, 0.6);
   transition: all 0.3s ease;
 }
 
 .infoBox {
-  background-color: rgba(0, 112, 243, 0.1);
-  border: 1px solid rgba(0, 112, 243, 0.2);
+  background-color: rgba(255, 107, 0, 0.1);
+  border: 1px solid rgba(255, 107, 0, 0.2);
   border-radius: 8px;
   padding: 24px;
   margin: 20px;
   text-align: center;
-  color: #00f2fe;
+  color: var(--primary-color-light);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
@@ -1045,7 +1057,7 @@
   margin: 0;
   font-size: 16px;
   line-height: 1.5;
-  color: #00f2fe;
+  color: var(--primary-color-light);
 }
 
 .infoBox p:first-child {
@@ -1054,13 +1066,13 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  text-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
+  text-shadow: 0 0 10px rgba(255, 107, 0, 0.3);
 }
 
 .infoBox p:first-child::before {
   content: "ℹ️";
   font-size: 20px;
-  filter: drop-shadow(0 0 5px rgba(0, 242, 254, 0.5));
+  filter: drop-shadow(0 0 5px rgba(255, 107, 0, 0.5));
 }
 
 /* Responsive Tasarım */
@@ -1176,4 +1188,80 @@
     width: 45px;
     height: 45px;
   }
+}
+
+.guidanceBox {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: var(--text-color);
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: 1px solid var(--primary-color);
+  box-shadow: 0 0 20px rgba(255, 107, 0, 0.3);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  max-width: 80%;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.guidanceBox.success {
+  background: rgba(255, 107, 0, 0.1);
+  border-color: rgba(255, 107, 0, 0.3);
+  color: var(--primary-color-light);
+  text-shadow: 0 0 10px rgba(255, 107, 0, 0.5);
+}
+
+.guidanceBox p {
+  margin: 0;
+  font-size: 1rem;
+  font-family: var(--font-mono);
+}
+
+.playerShapes .mainShape {
+  width: 150px;
+  height: 150px;
+  background-color: rgba(255, 107, 0, 0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s ease;
+  border: 2px solid var(--primary-color);
+  box-shadow: 0 0 20px rgba(255, 107, 0, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.playerShapes .mainShape::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(
+    45deg,
+    var(--primary-color-light),
+    var(--primary-color),
+    var(--primary-color-light)
+  );
+  background-size: 200% 200%;
+  animation: borderGlow 2s ease infinite;
+  z-index: 0;
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
+
+.playerShapes .mainShape.selected::after {
+  opacity: 1;
+}
+
+.playerShapes .mainShape.selected {
+  transform: scale(1.05);
+  border: 2px solid var(--primary-color);
+  background-color: rgba(255, 107, 0, 0.4);
+  box-shadow: 0 0 25px rgba(255, 107, 0, 0.5);
 } 

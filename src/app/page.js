@@ -20,15 +20,79 @@ export default function Home() {
   const [playerNames, setPlayerNames] = useState(['Player 1', 'Player 2', 'Player 3']);
   const [solutionSteps, setSolutionSteps] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
+  const [guidanceMessage, setGuidanceMessage] = useState('Please select a shape for Player 1');
+  const [isGuidanceSuccess, setIsGuidanceSuccess] = useState(false);
+
+  useEffect(() => {
+    // Set initial guidance message after playerNames is loaded
+    if (playerNames[0]) {
+      setGuidanceMessage(`Please select a shape for ${playerNames[0]}`);
+    }
+  }, [playerNames]);
+
+  useEffect(() => {
+    const handleInputFocus = (e) => {
+      const input = e.target;
+      const column = parseInt(input.getAttribute('tabindex'));
+      if (column) {
+        setActiveColumn(column);
+      }
+    };
+
+    const inputs = document.querySelectorAll('input[tabindex]');
+    inputs.forEach(input => {
+      input.addEventListener('focus', handleInputFocus);
+    });
+
+    return () => {
+      inputs.forEach(input => {
+        input.removeEventListener('focus', handleInputFocus);
+      });
+    };
+  }, []);
 
   useEffect(() => {
     const handleKeyPress = (e) => {
       const key = e.key.toLowerCase();
+      const code = e.code;
 
       // Eğer herhangi bir input veya düğme odaklanmışsa, klavye kısayollarını devre dışı bırak
       const activeElement = document.activeElement;
       if (activeElement.tagName === 'INPUT' || activeElement.tagName === 'BUTTON') {
+        // Eğer input focuslu ve Enter tuşuna basıldıysa, focusu kaldır
+        if (activeElement.tagName === 'INPUT' && key === 'enter') {
+          activeElement.blur();
+          return;
+        }
         return;
+      }
+
+      // Shift + 1-2-3 tuşları ile input'lara odaklan
+      if (e.shiftKey && ['Digit1', 'Digit2', 'Digit3'].includes(code)) {
+        const inputIndex = parseInt(code.replace('Digit', '')) - 1;
+        const input = document.querySelector(`input[tabindex="${inputIndex + 1}"]`);
+        if (input) {
+          e.preventDefault();
+          input.focus();
+          input.select();
+          return;
+        }
+      }
+
+      // Space tuşuna basıldığında ve starting shapes seçimi bekleniyorsa, ilgili inputu focusla
+      if (key === ' ') {
+        // Eğer hiç şekil seçilmemişse veya bazı şekiller eksikse
+        if (selectedShapes.length === 0 || selectedShapes.length < 3 || !selectedShapes.every(Boolean)) {
+          const emptyGroupIndex = selectedShapes.findIndex(shape => !shape);
+          const inputIndex = emptyGroupIndex === -1 ? 0 : emptyGroupIndex;
+          const input = document.querySelector(`input[tabindex="${inputIndex + 1}"]`);
+          if (input) {
+            e.preventDefault(); // Space karakterinin yazılmasını engelle
+            input.focus();
+            input.select(); // Input içeriğini seç
+            return;
+          }
+        }
       }
 
       // ESC tuşu ile seçimleri sıfırla
@@ -51,6 +115,7 @@ export default function Home() {
           setSelectedShapes([]);
           setActiveColumn(1);
         }
+        updateGuidanceMessage();
         return;
       }
 
@@ -130,6 +195,9 @@ export default function Home() {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [activeColumn, selectedShapes, isLiveMode, activeSubShapeGroup, selectedSubShapes]);
 
+  useEffect(() => {
+    updateGuidanceMessage();
+  }, [selectedShapes, selectedSubShapes, isLiveMode, solutionSteps, currentStep, playerNames]);
 
   const handleShapeSelect = (shape, column) => {
     let newSelectedShapes = [...selectedShapes];
@@ -160,6 +228,7 @@ export default function Home() {
     }
 
     setSelectedShapes(newSelectedShapes);
+    updateGuidanceMessage();
 
     // Eğer tüm şekiller seçili değilse, subShapes'i sıfırla
     if (!newSelectedShapes.every(shape => shape !== null)) {
@@ -179,6 +248,17 @@ export default function Home() {
     // Eğer 3 şekil seçildiyse ve simulator modundaysak
     if (newSelectedShapes.every(shape => shape !== null) && !isLiveMode) {
       generateNewSubShapes(newSelectedShapes);
+    }
+
+    // Eğer 3 şekil seçildiyse ve Live Mode'daysak, mesajı güncelle
+    if (newSelectedShapes.every(shape => shape !== null) && isLiveMode) {
+      const emptyGroupIndex = selectedSubShapes.findIndex(group => 
+        group.mainShape !== null && 
+        group.shapes[1] === null
+      );
+      if (emptyGroupIndex !== -1) {
+        setGuidanceMessage(`Please select a second shape for ${playerNames[emptyGroupIndex]}`);
+      }
     }
   };
 
@@ -263,6 +343,7 @@ export default function Home() {
     });
     
     setSelectedSubShapes(newSelectedSubShapes);
+    updateGuidanceMessage();
 
     // Bir sonraki boş grubu bul
     const nextEmptyGroup = selectedSubShapes.findIndex((group, index) => 
@@ -291,6 +372,14 @@ export default function Home() {
       if (steps.length > 0) {
         setCurrentStep(0);
         setCurrentShapes(steps[0].state);
+        
+        // Puzzle steps alanına otomatik kaydır
+        setTimeout(() => {
+          const puzzleStepsElement = document.querySelector('.puzzleSteps');
+          if (puzzleStepsElement) {
+            puzzleStepsElement.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 15);
       }
     }
   };
@@ -361,6 +450,7 @@ export default function Home() {
       { mainShape: null, shapes: [null, null] }
     ]);
     setActiveColumn(1);
+    updateGuidanceMessage();
   };
 
   const getButtonClassName = (shape, column) => {
@@ -386,6 +476,11 @@ export default function Home() {
     const newPlayerNames = [...playerNames];
     newPlayerNames[index] = newName;
     setPlayerNames(newPlayerNames);
+    
+    // Eğer ilk oyuncunun adı değiştiyse ve henüz şekil seçilmemişse, mesajı güncelle
+    if (index === 0 && (!selectedShapes[0] || selectedShapes[0] === null)) {
+      setGuidanceMessage(`Please select a shape for ${newName}`);
+    }
   };
 
   const simulateSolution = () => {
@@ -512,28 +607,111 @@ export default function Home() {
     return null;
   };
 
+  const getCurrentState = () => {
+    // Eğer hiç şekil seçilmemişse veya bazı şekiller eksikse
+    if (selectedShapes.length === 0 || selectedShapes.length < 3 || !selectedShapes.every(Boolean)) {
+      return 'selectMainShape';
+    }
+
+    // Eğer main shape'ler belirli ama sub shape'ler belirli değilse
+    if (selectedShapes.length === 3 && selectedShapes.every(shape => shape !== null)) {
+      // Önce mainShape'leri güncelle
+      const updatedSubShapes = selectedSubShapes.map((group, index) => ({
+        ...group,
+        mainShape: selectedShapes[index]
+      }));
+
+      // Boş sub shape grubunu bul
+      const emptyGroupIndex = updatedSubShapes.findIndex(group => 
+        group.shapes[1] === null
+      );
+
+      if (emptyGroupIndex !== -1) {
+        return 'selectSubShape';
+      }
+    }
+
+    // Eğer hem main shape'ler hem de sub shape'ler belirliyse
+    if (selectedShapes.length === 3 && 
+        selectedShapes.every(shape => shape !== null) && 
+        selectedSubShapes.every(group => 
+          group.mainShape !== null && 
+          group.shapes.every(shape => shape !== null)
+        )) {
+      return 'puzzleSolutionGenerated';
+    }
+
+    return '';
+  };
+
+  const updateGuidanceMessage = () => {
+    const state = getCurrentState();
+    
+    if (!isLiveMode) {
+      setGuidanceMessage('Simulation Mode');
+      setIsGuidanceSuccess(false);
+      return;
+    }
+    
+    if (state === 'selectMainShape') {
+      const emptyGroupIndex = selectedShapes.findIndex(shape => !shape);
+      const playerIndex = emptyGroupIndex === -1 ? 0 : emptyGroupIndex;
+      setGuidanceMessage(`Please select a shape for ${playerNames[playerIndex] || `Player ${playerIndex + 1}`}`);
+      setIsGuidanceSuccess(false);
+    } else if (state === 'selectSubShape') {
+      const emptyGroupIndex = selectedSubShapes.findIndex(group => group.shapes[1] === null);
+      setGuidanceMessage(`Please select a second shape for ${playerNames[emptyGroupIndex] || `Player ${emptyGroupIndex + 1}`}`);
+      setIsGuidanceSuccess(false);
+    } else if (state === 'puzzleSolutionGenerated') {
+      setGuidanceMessage('Puzzle solution has been generated');
+      setIsGuidanceSuccess(true);
+    } else {
+      setGuidanceMessage('Please select a shape for Player 1');
+      setIsGuidanceSuccess(false);
+    }
+  };
+
   return (
     <div className="page">
       <main className="main">
-        <h1 className="title">Verity Simulator</h1>
+        <div className="titleContainer">
+          <Image
+            src="/salvation.png"
+            alt="Salvation's Edge"
+            width={80}
+            height={80}
+            className="titleIcon"
+          />
+          <h1 className="title">Verity Solver</h1>
+          <p className="subtitle">A puzzle solver/simulator for the Verity encounter in Salvation's Edge raid</p>
+        </div>
         
         <div className="modeToggle">
           <button 
             className={`toggleButton ${isLiveMode ? 'active' : ''}`}
-            onClick={() => {
+            onClick={(e) => {
               setIsLiveMode(true);
-              resetPuzzle();
+              setSelectedShapes([]);
+              setSelectedSubShapes([
+                { mainShape: null, shapes: [null, null] },
+                { mainShape: null, shapes: [null, null] },
+                { mainShape: null, shapes: [null, null] }
+              ]);
+              setActiveColumn(1);
+              updateGuidanceMessage();
+              e.target.blur();
             }}
           >
             Live Mode
           </button>
           <button 
             className={`toggleButton ${!isLiveMode ? 'active' : ''}`}
-            onClick={() => {
+            onClick={(e) => {
               setIsLiveMode(false);
               if (selectedShapes.length === 3 && selectedShapes.every(shape => shape !== null)) {
                 generateNewSubShapes(selectedShapes);
               }
+              e.target.blur();
             }}
           >
             Simulation Mode
@@ -559,7 +737,6 @@ export default function Home() {
                       tabIndex={column}
                     />
                   </div>
-                  <h3 className="columnTitle">Player {column}</h3>
                   <div className="shapeButtons">
                     {['circle', 'triangle', 'square'].map((shape) => (
                       <button
@@ -638,88 +815,80 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="puzzleSteps">
-                <div className="titleRow">
-                  <h3 className="sectionTitle">Puzzle Steps</h3>
-                </div>
-                {selectedSubShapes.every(group => 
-                  group.mainShape !== null && 
-                  group.shapes.every(shape => shape !== null)
-                ) ? (
-                  <>
-                    <div className="columns">
-                      {selectedShapes.map((mainShape, index) => {
-                        const playerMoves = solutionSteps
-                          .filter(step => step.fromPlayer === index)
-                          .map(step => ({
-                            shape: step.shape,
-                            targetPlayer: step.toPlayer,
-                            stepNumber: step.step
-                          }));
+              {selectedSubShapes.every(group => 
+                group.mainShape !== null && 
+                group.shapes.every(shape => shape !== null)
+              ) && (
+                <div className="puzzleSteps">
+                  <div className="titleRow">
+                    <h3 className="sectionTitle">Puzzle Steps</h3>
+                  </div>
+                  <div className="columns">
+                    {selectedShapes.map((mainShape, index) => {
+                      const playerMoves = solutionSteps
+                        .filter(step => step.fromPlayer === index)
+                        .map(step => ({
+                          shape: step.shape,
+                          targetPlayer: step.toPlayer,
+                          stepNumber: step.step
+                        }));
 
-                        return (
-                          <div key={index} className="column">
-                            <h3 className="columnTitle">
-                              <div className={`shape ${mainShape}`} />
-                              {playerNames[index]}
-                            </h3>
-                            <div className="puzzleMoves">
-                              {playerMoves.length > 0 ? (
-                                playerMoves.map((move, moveIndex) => (
-                                  <div key={moveIndex} className="requiredMove">
-                                    <div className="tooltip">
-                                      {`${playerNames[index]} sends ${move.shape} to ${playerNames[move.targetPlayer]}`}
-                                    </div>
-                                    <div className="moveInfo">
-                                      <div className={`shape ${move.shape}`} />
-                                      <svg className="arrow" viewBox="0 0 24 24" width="24" height="24">
-                                        <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" fill="currentColor"/>
-                                      </svg>
-                                      <span className="targetLabel">
-                                        <div className={`shape ${selectedShapes[move.targetPlayer]}`} />
-                                        {playerNames[move.targetPlayer]}
-                                      </span>
-                                    </div>
+                      return (
+                        <div key={index} className="column">
+                          <h3 className="columnTitle">
+                            <div className={`shape ${mainShape}`} />
+                            {playerNames[index]}
+                          </h3>
+                          <div className="puzzleMoves">
+                            {playerMoves.length > 0 ? (
+                              playerMoves.map((move, moveIndex) => (
+                                <div key={moveIndex} className="requiredMove">
+                                  <div className="tooltip">
+                                    {`${playerNames[index]} sends ${move.shape} to ${playerNames[move.targetPlayer]}`}
                                   </div>
-                                ))
-                              ) : (
-                                <div className="requiredMove">
-                                  <div className="tooltip">No moves required</div>
                                   <div className="moveInfo">
-                                    <span className="targetLabel">No moves required</span>
+                                    <div className={`shape ${move.shape}`} />
+                                    <svg className="arrow" viewBox="0 0 24 24" width="24" height="24">
+                                      <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" fill="currentColor"/>
+                                    </svg>
+                                    <span className="targetLabel">
+                                      <div className={`shape ${selectedShapes[move.targetPlayer]}`} />
+                                      {playerNames[move.targetPlayer]}
+                                    </span>
                                   </div>
                                 </div>
-                              )}
-                            </div>
+                              ))
+                            ) : (
+                              <div className="requiredMove">
+                                <div className="tooltip">No moves required</div>
+                                <div className="moveInfo">
+                                  <span className="targetLabel">No moves required</span>
+                                </div>
+                              </div>
+                            )}
                           </div>
-                        );
-                      })}
-                    </div>
-                    <div className="solutionSummary">
-                      {solutionSteps.map((step, index) => {
-                        const currentPlayer = playerNames[step.fromPlayer];
-                        const nextPlayer = index < solutionSteps.length - 1 ? playerNames[solutionSteps[index + 1].fromPlayer] : null;
-                        const separator = nextPlayer && nextPlayer !== currentPlayer ? '\n' + '-'.repeat(50) + '\n' : '\n';
-                        
-                        return `${currentPlayer}, please send a ${step.shape} to ${playerNames[step.toPlayer]}${index === solutionSteps.length - 1 ? '' : separator}`;
-                      }).join('')}
-                    </div>
-                  </>
-                ) : (
-                  <div className="infoBox">
-                    <p>Incomplete Setup</p>
-                    <p>Please select all shapes to see the solution steps.</p>
+                        </div>
+                      );
+                    })}
                   </div>
-                )}
-              </div>
+                  <div className="solutionSummary">
+                    {solutionSteps.map((step, index) => {
+                      const currentPlayer = playerNames[step.fromPlayer];
+                      const nextPlayer = index < solutionSteps.length - 1 ? playerNames[solutionSteps[index + 1].fromPlayer] : null;
+                      const separator = nextPlayer && nextPlayer !== currentPlayer ? '\n' + '-'.repeat(50) + '\n' : '\n';
+                      
+                      return `${currentPlayer}, please send a ${step.shape} to ${playerNames[step.toPlayer]}${index === solutionSteps.length - 1 ? '' : separator}`;
+                    }).join('')}
+                  </div>
+                </div>
+              )}
             </>
           )}
         </div>
-
-        <button className="button" onClick={resetPuzzle}>
-          Reset Puzzle
-        </button>
       </main>
+      <div className={`guidanceBox ${isGuidanceSuccess ? 'success' : ''}`}>
+        <p>{guidanceMessage}</p>
+      </div>
     </div>
   );
 }
