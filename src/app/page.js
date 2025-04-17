@@ -183,6 +183,7 @@ export default function Home() {
       // Sütun seçimi için sayı tuşları
       if (['1', '2', '3'].includes(key)) {
         setActiveColumn(parseInt(key));
+        updateGuidanceMessage();
       }
 
       // Eğer geçerli bir şekil seçildiyse ve aktif sütun varsa
@@ -198,6 +199,10 @@ export default function Home() {
   useEffect(() => {
     updateGuidanceMessage();
   }, [selectedShapes, selectedSubShapes, isLiveMode, solutionSteps, currentStep, playerNames]);
+
+  useEffect(() => {
+    updateGuidanceMessage();
+  }, [activeColumn]);
 
   const handleShapeSelect = (shape, column) => {
     let newSelectedShapes = [...selectedShapes];
@@ -641,7 +646,7 @@ export default function Home() {
       return 'puzzleSolutionGenerated';
     }
 
-    return '';
+    return 'selectMainShape';
   };
 
   const updateGuidanceMessage = () => {
@@ -654,8 +659,7 @@ export default function Home() {
     }
     
     if (state === 'selectMainShape') {
-      const emptyGroupIndex = selectedShapes.findIndex(shape => !shape);
-      const playerIndex = emptyGroupIndex === -1 ? 0 : emptyGroupIndex;
+      const playerIndex = activeColumn - 1;
       setGuidanceMessage(`Please select a shape for ${playerNames[playerIndex] || `Player ${playerIndex + 1}`}`);
       setIsGuidanceSuccess(false);
     } else if (state === 'selectSubShape') {
@@ -666,7 +670,8 @@ export default function Home() {
       setGuidanceMessage('Puzzle solution has been generated');
       setIsGuidanceSuccess(true);
     } else {
-      setGuidanceMessage('Please select a shape for Player 1');
+      const playerIndex = activeColumn - 1;
+      setGuidanceMessage(`Please select a shape for ${playerNames[playerIndex] || `Player ${playerIndex + 1}`}`);
       setIsGuidanceSuccess(false);
     }
   };
@@ -718,7 +723,7 @@ export default function Home() {
           </button>
         </div>
 
-        <div className="container">
+        <div className="container appContainer">
           <div className="startingShapes">
             <h3 className="sectionTitle">Starting Shapes</h3>
             <div className="columns">
@@ -735,6 +740,7 @@ export default function Home() {
                       className="playerNameInput"
                       placeholder={`Player ${column}`}
                       tabIndex={column}
+                      maxLength={40}
                     />
                   </div>
                   <div className="shapeButtons">
@@ -819,68 +825,87 @@ export default function Home() {
                 group.mainShape !== null && 
                 group.shapes.every(shape => shape !== null)
               ) && (
-                <div className="puzzleSteps">
-                  <div className="titleRow">
-                    <h3 className="sectionTitle">Puzzle Steps</h3>
-                  </div>
-                  <div className="columns">
-                    {selectedShapes.map((mainShape, index) => {
-                      const playerMoves = solutionSteps
-                        .filter(step => step.fromPlayer === index)
-                        .map(step => ({
-                          shape: step.shape,
-                          targetPlayer: step.toPlayer,
-                          stepNumber: step.step
-                        }));
+                <>
+                  <div className="puzzleSteps">
+                    <div className="titleRow">
+                      <h3 className="sectionTitle">Puzzle Steps</h3>
+                    </div>
+                    <div className="columns">
+                      {selectedShapes.map((mainShape, index) => {
+                        const playerMoves = solutionSteps
+                          .filter(step => step.fromPlayer === index)
+                          .map(step => ({
+                            shape: step.shape,
+                            targetPlayer: step.toPlayer,
+                            stepNumber: step.step
+                          }));
 
-                      return (
-                        <div key={index} className="column">
-                          <h3 className="columnTitle">
-                            <div className={`shape ${mainShape}`} />
-                            {playerNames[index]}
-                          </h3>
-                          <div className="puzzleMoves">
-                            {playerMoves.length > 0 ? (
-                              playerMoves.map((move, moveIndex) => (
-                                <div key={moveIndex} className="requiredMove">
-                                  <div className="tooltip">
-                                    {`${playerNames[index]} sends ${move.shape} to ${playerNames[move.targetPlayer]}`}
+                        return (
+                          <div key={index} className="column">
+                            <h3 className="columnTitle">
+                              <div className={`shape ${mainShape}`} />
+                              {playerNames[index]}
+                            </h3>
+                            <div className="puzzleMoves">
+                              {playerMoves.length > 0 ? (
+                                <>
+                                  {playerMoves.map((move, moveIndex) => (
+                                    <div key={moveIndex} className="requiredMove">
+                                      <div className="tooltip">
+                                        {`${playerNames[index]} sends ${move.shape} to ${playerNames[move.targetPlayer]}`}
+                                      </div>
+                                      <div className="moveInfo">
+                                        <div className={`shape ${move.shape}`} />
+                                        <svg className="arrow" viewBox="0 0 24 24" width="24" height="24">
+                                          <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" fill="currentColor"/>
+                                        </svg>
+                                        <span className="targetLabel">
+                                          <div className={`shape ${selectedShapes[move.targetPlayer]}`} />
+                                          {playerNames[move.targetPlayer]}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                  <div className="finalShapes">
+                                    <div className='finalShapesTitle'>Final Shapes</div>
+                                    <div className='finalShapesContainer'>
+                                    {solutionSteps[solutionSteps.length - 1]?.state[index].shapes.map((shape, shapeIndex) => (
+                                      <>
+                                        <div className={`shape ${shape}`} />
+                                        {shapeIndex < solutionSteps[solutionSteps.length - 1]?.state[index].shapes.length - 1 && (
+                                          <svg className="plus" viewBox="0 0 24 24" width="24" height="24">
+                                            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"/>
+                                          </svg>
+                                        )}
+                                      </>
+                                    ))}
+                                    </div>
                                   </div>
+                                </>
+                              ) : (
+                                <div className="requiredMove">
+                                  <div className="tooltip">No moves required</div>
                                   <div className="moveInfo">
-                                    <div className={`shape ${move.shape}`} />
-                                    <svg className="arrow" viewBox="0 0 24 24" width="24" height="24">
-                                      <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" fill="currentColor"/>
-                                    </svg>
-                                    <span className="targetLabel">
-                                      <div className={`shape ${selectedShapes[move.targetPlayer]}`} />
-                                      {playerNames[move.targetPlayer]}
-                                    </span>
+                                    <span className="targetLabel">No moves required</span>
                                   </div>
                                 </div>
-                              ))
-                            ) : (
-                              <div className="requiredMove">
-                                <div className="tooltip">No moves required</div>
-                                <div className="moveInfo">
-                                  <span className="targetLabel">No moves required</span>
-                                </div>
-                              </div>
-                            )}
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
+                    <div className="solutionSummary">
+                      {solutionSteps.map((step, index) => {
+                        const currentPlayer = playerNames[step.fromPlayer];
+                        const nextPlayer = index < solutionSteps.length - 1 ? playerNames[solutionSteps[index + 1].fromPlayer] : null;
+                        const separator = nextPlayer && nextPlayer !== currentPlayer ? '\n' + '-'.repeat(50) + '\n' : '\n';
+                        
+                        return `${currentPlayer}, please send a ${step.shape} to ${playerNames[step.toPlayer]}${index === solutionSteps.length - 1 ? '' : separator}`;
+                      }).join('')}
+                    </div>
                   </div>
-                  <div className="solutionSummary">
-                    {solutionSteps.map((step, index) => {
-                      const currentPlayer = playerNames[step.fromPlayer];
-                      const nextPlayer = index < solutionSteps.length - 1 ? playerNames[solutionSteps[index + 1].fromPlayer] : null;
-                      const separator = nextPlayer && nextPlayer !== currentPlayer ? '\n' + '-'.repeat(50) + '\n' : '\n';
-                      
-                      return `${currentPlayer}, please send a ${step.shape} to ${playerNames[step.toPlayer]}${index === solutionSteps.length - 1 ? '' : separator}`;
-                    }).join('')}
-                  </div>
-                </div>
+                </>
               )}
             </>
           )}

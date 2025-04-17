@@ -1,3 +1,103 @@
+:root {
+  --primary-color: #ff6b00;
+  --primary-color-light: #ff8c33;
+  --text-color: #fff;
+  --background-color: rgba(0, 0, 0, 0.1);
+  --border-color: rgba(255, 107, 0, 0.3);
+  --hover-background: rgba(0, 0, 0, 0.2);
+  --transition-speed: 0.3s;
+  --border-radius: 4px;
+  --box-shadow: 0 0 20px rgba(255, 107, 0, 0.4);
+  --shape-size: 30px;
+  --button-padding: 8px 12px;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* Common shape styles */
+.shape {
+  width: var(--shape-size);
+  height: var(--shape-size);
+  background-color: var(--primary-color);
+  transition: all var(--transition-speed) ease;
+}
+
+.shape.circle {
+  border-radius: 50%;
+}
+
+.shape.triangle {
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+.shape.square {
+  border-radius: 0;
+}
+
+/* Common button styles */
+.button {
+  padding: var(--button-padding);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  background: var(--background-color);
+  color: var(--text-color);
+  font-family: var(--font-mono);
+  transition: all var(--transition-speed) ease;
+  cursor: pointer;
+}
+
+.button:hover {
+  background: var(--hover-background);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(255, 107, 0, 0.2);
+}
+
+/* Common input styles */
+.input {
+  width: 80%;
+  padding: var(--button-padding);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: 1em;
+  color: var(--text-color);
+  background: var(--background-color);
+  text-align: center;
+  transition: all var(--transition-speed) ease;
+  font-family: var(--font-mono);
+  outline: none;
+}
+
+.input:focus {
+  outline: none;
+  background: var(--hover-background);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(255, 107, 0, 0.2);
+}
+
+/* Common container styles */
+.container {
+  background: var(--background-color);
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+/* Common flex styles */
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
 .page {
   padding: 4rem 0;
   flex: 1;
@@ -51,19 +151,6 @@
   font-size: 14px;
   text-align: center;
   font-weight: var(--font-weight);
-}
-
-.container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2rem;
-  background: var(--panel-bg);
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 0 20px var(--panel-shadow);
-  border: 1px solid var(--panel-border);
-  width: 100%;
 }
 
 .columns {
@@ -494,7 +581,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-top: 15px;
+  height: 100%;
   text-align: center;
 }
 
@@ -507,7 +594,7 @@
   border-radius: 4px;
 }
 
-.arrow {
+.arrow, .plus {
   color: var(--primary-color);
   flex-shrink: 0;
 }
@@ -1077,62 +1164,133 @@
 
 /* Responsive Tasarım */
 @media (max-width: 1200px) {
-  .container {
-    padding: 1rem;
+  .main {
+    padding: 0 2rem;
   }
 
   .columns {
-    gap: 1rem;
+    gap: 1.5rem;
   }
 
   .column {
+    width: 280px;
+  }
+
+  .startingShapes .column,
+  .playerShapes .column,
+  .puzzleSteps .column {
     width: 250px;
   }
 
+  /* Önce şekilleri küçültmeyi dene */
   .mainShape {
-    width: 120px;
-    height: 120px;
+    width: 110px;
+    height: 110px;
   }
 
   .subShape {
-    width: 50px;
-    height: 50px;
+    width: 45px;
+    height: 45px;
+  }
+
+  .shapeButton {
+    width: 45px;
+    height: 45px;
+  }
+
+  .titleIcon {
+    width: 70px !important;
+    height: 70px !important;
+  }
+}
+
+/* Eğer şekilleri küçültmek yeterli olmazsa, bu düzenlemeler devreye girer */
+@media (max-width: 1000px) {
+  .columns {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .column {
+    width: calc(50% - 2rem);
+    margin-bottom: 2rem;
+  }
+
+  .startingShapes .column,
+  .playerShapes .column,
+  .puzzleSteps .column {
+    width: calc(50% - 2rem);
   }
 }
 
 @media (max-width: 900px) {
+  .page {
+    padding: 2rem 0;
+  }
+
+  .titleContainer {
+    max-width: 90%;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+  }
+
   .columns {
     flex-direction: column;
     align-items: center;
+    gap: 2rem;
   }
 
   .column {
-    width: 80%;
+    width: 90%;
+    max-width: 400px;
+  }
+
+  .startingShapes .column,
+  .playerShapes .column,
+  .puzzleSteps .column {
+    width: 100%;
     max-width: 400px;
   }
 
   .shapeButtons {
     flex-wrap: wrap;
     justify-content: center;
-  }
-
-  .shapeButton {
-    width: 50px;
-    height: 50px;
+    gap: 1rem;
   }
 
   .playerNameInput {
     width: 90%;
   }
+
+  .modeToggle {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .toggleButton {
+    width: 100%;
+    max-width: 300px;
+  }
 }
 
 @media (max-width: 600px) {
   .page {
-    padding: 2rem 1rem;
+    padding: 1.5rem 1rem;
   }
 
   .title {
-    font-size: 2rem;
+    font-size: 1.8rem;
+  }
+
+  .titleIcon {
+    width: 60px !important;
+    height: 60px !important;
   }
 
   .sectionTitle {
@@ -1140,6 +1298,13 @@
   }
 
   .column {
+    width: 100%;
+    padding: 1rem;
+  }
+
+  .startingShapes .column,
+  .playerShapes .column,
+  .puzzleSteps .column {
     width: 100%;
     padding: 1rem;
   }
@@ -1154,6 +1319,11 @@
     height: 40px;
   }
 
+  .shapeButton {
+    width: 45px;
+    height: 45px;
+  }
+
   .button {
     padding: 0.6rem 1.2rem;
     font-size: 0.9rem;
@@ -1163,11 +1333,27 @@
     width: 95%;
     font-size: 0.9rem;
   }
+
+  .guidanceBox {
+    width: 90%;
+    padding: 0.8rem 1.2rem;
+    font-size: 0.9rem;
+  }
 }
 
-@media (max-width: 400px) {
+@media (max-width: 500px) {
+  .appContainer {
+    width: 100%;
+    padding: 0;
+    margin: 0;
+  }
+
   .title {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
   }
 
   .sectionTitle {
@@ -1185,14 +1371,114 @@
   }
 
   .shapeButton {
+    width: 40px;
+    height: 40px;
+  }
+
+  .playerNameInput {
+    font-size: 0.8rem;
+  }
+
+  .guidanceBox {
+    font-size: 0.8rem;
+  }
+}
+
+/* Landscape mode için özel düzenlemeler */
+@media (max-height: 600px) and (orientation: landscape) {
+  .page {
+    padding: 1rem 0;
+  }
+
+  .titleContainer {
+    margin-bottom: 1rem;
+  }
+
+  .titleIcon {
+    width: 50px !important;
+    height: 50px !important;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .columns {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .column {
+    width: calc(33.333% - 1rem);
+    min-width: 200px;
+  }
+
+  .mainShape {
+    width: 80px;
+    height: 80px;
+  }
+
+  .subShape {
+    width: 35px;
+    height: 35px;
+  }
+}
+
+/* Tablet için özel düzenlemeler */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .columns {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .column {
+    width: calc(50% - 2rem);
+    margin-bottom: 2rem;
+  }
+
+  .mainShape {
+    width: 110px;
+    height: 110px;
+  }
+
+  .subShape {
     width: 45px;
     height: 45px;
   }
 }
 
+/* Yüksek DPI ekranlar için özel düzenlemeler */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .shape,
+  .mainShape,
+  .subShape {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+}
+
+/* Karanlık mod için özel düzenlemeler */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background-color: rgba(0, 0, 0, 0.2);
+    --hover-background: rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Animasyonlar için performans optimizasyonu */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 .guidanceBox {
   position: fixed;
-  bottom: 20px;
+  bottom: 2em;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(0, 0, 0, 0.8);
@@ -1206,6 +1492,10 @@
   max-width: 80%;
   text-align: center;
   transition: all 0.3s ease;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
 
 .guidanceBox.success {
@@ -1219,6 +1509,10 @@
   margin: 0;
   font-size: 1rem;
   font-family: var(--font-mono);
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
 
 .playerShapes .mainShape {
@@ -1264,4 +1558,84 @@
   border: 2px solid var(--primary-color);
   background-color: rgba(255, 107, 0, 0.4);
   box-shadow: 0 0 25px rgba(255, 107, 0, 0.5);
+}
+
+.finalShapes {
+  margin-top: auto;
+  padding: 1rem;
+  background: rgba(20, 20, 20, 0.6);
+  border-radius: 8px;
+  border: 1px solid var(--primary-color-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.finalShapesContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.moveInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.moveInfo .shape {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background: var(--primary-color);
+  border: 1px solid var(--primary-color-light);
+}
+
+.moveInfo .arrow {
+  color: var(--primary-color-light);
+}
+
+.moveInfo .shape.circle {
+  border-radius: 50%;
+}
+
+.moveInfo .shape.triangle {
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+.moveInfo .shape.square {
+  border-radius: 0;
+}
+
+.finalShape {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background: rgba(255, 107, 0, 0.2);
+  border: 1px solid var(--primary-color);
+}
+
+.finalShape.circle {
+  border-radius: 50%;
+}
+
+.finalShape.triangle {
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+.finalShape.square {
+  border-radius: 4px;
+}
+
+.finalShape.hexagon {
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+}
+
+.finalShapes .shape {
+  width: 32px;
+  height: 32px;
 } 
