@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import './page.scss'
+import './page.css'
 import Image from "next/image";
 
 export default function Home() {
@@ -22,12 +22,6 @@ export default function Home() {
   const [currentStep, setCurrentStep] = useState(0);
   const [guidanceMessage, setGuidanceMessage] = useState('Please select a shape for Player 1');
   const [isGuidanceSuccess, setIsGuidanceSuccess] = useState(false);
-
-  useEffect(() => {
-    if (solutionSteps.length > 0) {
-      console.log({ solutionSteps });
-    }
-  }, [solutionSteps]);
 
   useEffect(() => {
     // Set initial guidance message after playerNames is loaded
@@ -239,25 +233,16 @@ export default function Home() {
     }
 
     setSelectedShapes(newSelectedShapes);
+    updateGuidanceMessage();
 
     // Eğer tüm şekiller seçili değilse, subShapes'i sıfırla
     if (!newSelectedShapes.every(shape => shape !== null)) {
-      const resetSubShapes = [
+      setSelectedSubShapes([
         { mainShape: null, shapes: [null, null] },
         { mainShape: null, shapes: [null, null] },
         { mainShape: null, shapes: [null, null] }
-      ];
-      setSelectedSubShapes(resetSubShapes);
-    } else {
-      // Tüm şekiller seçiliyse, mainShape'leri ve ilk şekilleri güncelle
-      const updatedSubShapes = selectedSubShapes.map((group, index) => ({
-        mainShape: newSelectedShapes[index],
-        shapes: [newSelectedShapes[index], group.shapes[1]] // İlk şekil mainShape olacak, ikinci şekil aynı kalacak
-      }));
-      setSelectedSubShapes(updatedSubShapes);
+      ]);
     }
-
-    updateGuidanceMessage();
 
     // Bir sonraki boş sütunu bul ve aktif sütunu güncelle
     const nextEmptyColumn = newSelectedShapes.findIndex((shape, index) => shape === null) + 1;
@@ -283,6 +268,9 @@ export default function Home() {
   };
 
   const generateNewSubShapes = (mainShapes) => {
+    console.log('Alt şekiller oluşturuluyor...');
+    console.log('Ana şekiller:', mainShapes);
+    
     let newSubShapes = selectedSubShapes.map((group, index) => ({
       mainShape: mainShapes[index],
       shapes: [null, null]
@@ -301,6 +289,8 @@ export default function Home() {
       // Tüm şekilleri bir listeye al ve shuffle et
       let availableShapes = [...mainShapes];
       availableShapes = availableShapes.sort(() => Math.random() - 0.5);
+
+      console.log('Karıştırılmış şekiller:', availableShapes);
 
       // Her sütun için ikinci alt şekli belirle
       mainShapes.forEach((_, index) => {
@@ -322,14 +312,19 @@ export default function Home() {
 
       // No Doubles kontrolü
       hasDouble = newSubShapes.some(group => group.shapes[0] === group.shapes[1]);
+      
+      if (isSameAsPrevious || (noDoubles && hasDouble)) {
+        console.log('Aynı sıralama veya çift şekil üretildi, tekrar deneniyor...');
+      }
     }
 
+    console.log('Son alt şekiller:', newSubShapes);
     setSelectedSubShapes(newSubShapes);
 
     // Alt şekiller oluşturulduktan sonra simülasyonu başlat
     const steps = simulateSolution();
-    if (steps && steps.length > 0) {
-      setSolutionSteps(steps);
+    setSolutionSteps(steps);
+    if (steps.length > 0) {
       setCurrentStep(0);
       setCurrentShapes(steps[0].state);
     }
@@ -340,14 +335,17 @@ export default function Home() {
     const shapeIndex = index % 2;
     
     const newSelectedSubShapes = [...selectedSubShapes];
-    // Sadece seçilen grubun ikinci şeklini güncelle
-    newSelectedSubShapes[groupIndex] = {
-      mainShape: newSelectedSubShapes[groupIndex].mainShape, // mainShape aynı kalacak
-      shapes: [
-        newSelectedSubShapes[groupIndex].shapes[0], // İlk şekil aynı kalacak
-        shape // İkinci şekil güncellenecek
-      ]
-    };
+    // Tüm grupların mainShape'lerini ve şekillerini güncelle
+    newSelectedSubShapes.forEach((group, i) => {
+      newSelectedSubShapes[i] = {
+        ...group,
+        mainShape: selectedShapes[i],
+        shapes: [
+          selectedShapes[i], // İlk şekil her zaman mainShape olacak
+          i === groupIndex ? shape : group.shapes[1] // İkinci şekil seçilen grup için yeni şekil, diğerleri için mevcut şekil
+        ]
+      };
+    });
     
     setSelectedSubShapes(newSelectedSubShapes);
     updateGuidanceMessage();
@@ -362,14 +360,21 @@ export default function Home() {
       setActiveSubShapeGroup(0);
     }
 
+    console.log({
+      newSelectedSubShapes
+    });
     // Live Mode'da tüm şekiller seçildiğinde çözümü hesapla
     if (isLiveMode && newSelectedSubShapes.every(group => 
       group.mainShape !== null && 
       group.shapes.every(shape => shape !== null)
     )) {
+      // Tüm subShape'ler seçildiğinde konsola log at
+      console.log('All subShapes have been selected in Live Mode:');
+      console.log('Current state:', newSelectedSubShapes);
+      
       const steps = simulateSolution();
-      if (steps && steps.length > 0) {
-        setSolutionSteps(steps);
+      setSolutionSteps(steps);
+      if (steps.length > 0) {
         setCurrentStep(0);
         setCurrentShapes(steps[0].state);
         
@@ -386,24 +391,32 @@ export default function Home() {
 
   // Kullanılabilir şekilleri hesapla
   const getAvailableShapes = (groupIndex) => {
+    console.log('getAvailableShapes called for groupIndex:', groupIndex);
+    console.log('Current selectedSubShapes:', selectedSubShapes);
+    
     const usedShapes = new Set();
     selectedSubShapes.forEach((group, index) => {
       if (index !== groupIndex) {
+        console.log(`Checking group ${index}:`, group);
         if (group.shapes[1]) {
+          console.log(`Adding shape ${group.shapes[1]} to usedShapes`);
           usedShapes.add(group.shapes[1]);
         }
       }
     });
 
+    console.log('Used shapes:', Array.from(usedShapes));
     const availableShapes = ['circle', 'triangle', 'square'].filter(shape => !usedShapes.has(shape));
+    console.log('Available shapes:', availableShapes);
     
     // Eğer sadece bir seçenek kaldıysa ve bu grup henüz seçim yapmadıysa, otomatik seç
-    // if (availableShapes.length === 1 && selectedSubShapes[groupIndex].shapes[1] === null) {
-    //   // Bir sonraki render döngüsünde otomatik seçim yap
-    //   setTimeout(() => {
-    //     handleSubShapeSelect(availableShapes[0], groupIndex * 2 + 1);
-    //   }, 0);
-    // }
+    if (availableShapes.length === 1 && selectedSubShapes[groupIndex].shapes[1] === null) {
+      console.log('Only one shape available, auto-selecting:', availableShapes[0]);
+      // Bir sonraki render döngüsünde otomatik seçim yap
+      setTimeout(() => {
+        handleSubShapeSelect(availableShapes[0], groupIndex * 2 + 1);
+      }, 0);
+    }
     
     return availableShapes;
   };
@@ -417,9 +430,10 @@ export default function Home() {
     );
 
     if (allValuesFilled) {
+      console.log('All shapes are selected, starting simulation...');
       const steps = simulateSolution();
-      if (steps && steps.length > 0) {
-        setSolutionSteps(steps);
+      setSolutionSteps(steps);
+      if (steps.length > 0) {
         setCurrentStep(0);
         setCurrentShapes(steps[0].state);
       }
@@ -474,212 +488,67 @@ export default function Home() {
     }
   };
 
-  const analyzePuzzleState = (shapes) => {
-    const playersWithDuplicates = [];
-    
-    // Her oyuncu için şekilleri kontrol et
-    for (let i = 0; i < shapes.length; i++) {
-      const playerShapes = shapes[i].shapes;
-      
-      // Eğer oyuncunun elinde aynı şekilden 2 tane varsa
-      if (playerShapes[0] === playerShapes[1]) {
-        playersWithDuplicates.push(i);
-      }
-    }
-    
-    // Senaryoyu belirle
-    let scenario;
-    let description;
-    
-    if (playersWithDuplicates.length === 0) {
-      scenario = 1;
-      description = "Hiçbir oyuncunun elinde aynı şekilden 2 tane yok";
-    } else if (playersWithDuplicates.length === 1) {
-      scenario = 2;
-      description = "Bir oyuncunun elinde aynı şekilden 2 tane var";
-    } else {
-      scenario = 3;
-      description = "Tüm oyuncularda aynı şekilden 2 tane var";
-      // Tüm oyuncularda aynı şekil varsa, eksik oyuncuları da ekle
-      for (let i = 0; i < shapes.length; i++) {
-        if (!playersWithDuplicates.includes(i)) {
-          playersWithDuplicates.push(i);
-        }
-      }
-    }
-    
-    return {
-      scenario,
-      description,
-      playersWithDuplicates
-    };
-  };
-
-  const findNextMove = (shapes, scenario) => {
-    // Senaryo 1: Hiçbir oyuncunun elinde aynı şekilden 2 tane yok
-    if (scenario === 1) {
-      // Her oyuncu için eksik şekli bul ve hedef oyuncuya gönder
-      for (let playerIndex = 0; playerIndex < 3; playerIndex++) {
-        const currentShapes = shapes[playerIndex].shapes;
-        const mainShape = shapes[playerIndex].mainShape;
-        
-        // Eğer oyuncunun elinde hiç şekil yoksa atla
-        if (currentShapes.length === 0) continue;
-        
-        // Eksik şekli bul (üç şekilden elinde olmayan tek şekil)
-        const missingShape = ['circle', 'triangle', 'square'].find(
-          shape => !currentShapes.includes(shape)
-        );
-        
-        // Eksik şeklin mainShape olduğu oyuncuyu bul (kendisi hariç)
-        const targetPlayer = shapes.findIndex(
-          (player, index) => 
-            index !== playerIndex && // Kendine gönderemez
-            player.mainShape === missingShape && // Hedef oyuncunun mainShape'i bu şekil olmalı
-            !player.shapes.includes(missingShape) // Hedef oyuncunun elinde bu şekil olmamalı
-        );
-        
-        // Eğer geçerli bir hedef oyuncu bulunduysa
-        if (targetPlayer !== -1) {
-          // Gönderen oyuncunun elindeki şekillerden birini seç
-          const shapeToSend = currentShapes[0]; // İlk şekli gönder
-          return {
-            fromPlayer: playerIndex,
-            toPlayer: targetPlayer,
-            shape: shapeToSend
-          };
-        }
-      }
-    }
-    
-    // Senaryo 2: Bir oyuncuda aynı şekilden 2 tane var
-    else if (scenario === 2) {
-      // Çift şekli olan oyuncuyu bul
-      const playerWithDuplicates = shapes.findIndex(player => 
-        player.shapes.length >= 2 && player.shapes[0] === player.shapes[1]
-      );
-      
-      // Eğer çift şekli olan oyuncu bulunamadıysa veya elinde şekil yoksa
-      if (playerWithDuplicates === -1 || shapes[playerWithDuplicates].shapes.length === 0) {
-        return null;
-      }
-      
-      const duplicateShape = shapes[playerWithDuplicates].shapes[0];
-      
-      // Bu şeklin mainShape olduğu oyuncuyu bul (kendisi hariç)
-      const targetPlayer = shapes.findIndex(
-        (player, index) => 
-          index !== playerWithDuplicates && // Kendine gönderemez
-          player.mainShape === duplicateShape && // Hedef oyuncunun mainShape'i bu şekil olmalı
-          !player.shapes.includes(duplicateShape) // Hedef oyuncunun elinde bu şekil olmamalı
-      );
-      
-      // Eğer geçerli bir hedef oyuncu bulunduysa
-      if (targetPlayer !== -1) {
-        return {
-          fromPlayer: playerWithDuplicates,
-          toPlayer: targetPlayer,
-          shape: duplicateShape
-        };
-      }
-    }
-    
-    // Senaryo 3: Tüm oyuncularda aynı şekilden 2 tane var
-    else if (scenario === 3) {
-      // Her oyuncu için çift şekli olan oyuncuyu bul
-      for (let playerIndex = 0; playerIndex < 3; playerIndex++) {
-        const currentShapes = shapes[playerIndex].shapes;
-        const mainShape = shapes[playerIndex].mainShape;
-        
-        // Eğer oyuncunun elinde hiç şekil yoksa atla
-        if (currentShapes.length === 0) continue;
-        
-        // Oyuncunun kendi mainShape'i ile aynı olan şekli bul
-        const ownShape = currentShapes.find(shape => shape === mainShape);
-        
-        // Eğer oyuncunun elinde kendi mainShape'i yoksa atla
-        if (!ownShape) continue;
-        
-        // Bu şeklin mainShape olmadığı oyuncuyu bul (kendisi hariç)
-        const targetPlayer = shapes.findIndex(
-          (player, index) => 
-            index !== playerIndex && // Kendine gönderemez
-            player.mainShape !== ownShape && // Hedef oyuncunun mainShape'i farklı olmalı
-            !player.shapes.includes(ownShape) // Hedef oyuncunun elinde bu şekil olmamalı
-        );
-        
-        // Eğer geçerli bir hedef oyuncu bulunduysa
-        if (targetPlayer !== -1) {
-          return {
-            fromPlayer: playerIndex,
-            toPlayer: targetPlayer,
-            shape: ownShape
-          };
-        }
-      }
-    }
-    
-    // Eğer hiçbir senaryo uymuyorsa veya geçerli bir hamle bulunamadıysa null döndür
-    return null;
-  };
-
   const simulateSolution = () => {
-    // Başlangıç durumunu kaydet
-    const initialShapes = JSON.parse(JSON.stringify(selectedSubShapes));
-    
-    // Başlangıç senaryosunu belirle
-    const { scenario, description, playersWithDuplicates } = analyzePuzzleState(initialShapes);
-    
+    console.log('Starting solution simulation...');
+    console.log('Initial state:', selectedSubShapes);
+
+    // Her oyuncunun başlangıç durumunu kopyala
+    const initialShapes = selectedSubShapes.map(group => ({
+      mainShape: group.mainShape,
+      shapes: [...group.shapes]
+    }));
+
     const steps = [];
     let currentShapes = JSON.parse(JSON.stringify(initialShapes));
     let stepNumber = 1;
+    const MAX_ITERATIONS = 1000;
 
-    // Maksimum 50 adımda çözüm bulmaya çalış
-    while (stepNumber <= 50) {
+    // Nihai duruma ulaşana kadar döngü
+    while (!isPuzzleSolved(currentShapes) && stepNumber <= MAX_ITERATIONS) {
+      console.log(`\nStep ${stepNumber}:`);
+      console.log('Current state:', currentShapes);
+
       // Bir sonraki hamleyi bul
-      const nextMove = findNextMove(currentShapes, scenario);
-      
-      // Eğer hamle bulunamadıysa döngüyü sonlandır
-      if (!nextMove) break;
-      
-      // Hamleyi uygula
+      const nextMove = findNextMove(currentShapes);
+      if (!nextMove) {
+        console.log('No valid move found!');
+        break;
+      }
+
+      // Hamleyi gerçekleştir
       const { fromPlayer, toPlayer, shape } = nextMove;
       
-      // Şekli gönderen oyuncudan çıkar (sadece bir tane)
+      // Şekli gönderen oyuncudan çıkar
       const fromPlayerShapes = currentShapes[fromPlayer].shapes;
       const shapeIndex = fromPlayerShapes.indexOf(shape);
-      if (shapeIndex !== -1) {
-        fromPlayerShapes.splice(shapeIndex, 1);
-      }
-      
-      // Şekli alan oyuncuya ekle
+      fromPlayerShapes.splice(shapeIndex, 1);
+
+      // Şekli alıcı oyuncuya ekle
       currentShapes[toPlayer].shapes.push(shape);
-      
-      // Hamleyi adımlara ekle
-      steps.push({
+
+      // Adımı kaydet
+      const step = {
         step: stepNumber,
         fromPlayer,
         toPlayer,
         shape,
         state: JSON.parse(JSON.stringify(currentShapes))
-      });
-      
-      // Adım sayısını artır
+      };
+      steps.push(step);
+
+      console.log(`Move: ${playerNames[fromPlayer]} sends ${shape} to ${playerNames[toPlayer]}`);
+      console.log('New state:', currentShapes);
+
       stepNumber++;
-      
-      // Eğer çözüm bulunduysa döngüyü sonlandır
-      if (isPuzzleSolved(currentShapes)) break;
     }
-    
-    // Çözüm adımlarını kaydet
-    setSolutionSteps(steps);
-    
-    // Eğer çözüm bulunduysa kullanıcıya bilgi ver
-    if (steps.length > 0) {
-      setGuidanceMessage(`Çözüm bulundu! (${description})`);
-    } else {
-      setGuidanceMessage('Çözüm bulunamadı. Lütfen tekrar deneyin.');
+
+    if (stepNumber > MAX_ITERATIONS) {
+      console.log('Maximum iteration limit reached!');
     }
+
+    console.log('\nFinal state:', currentShapes);
+    console.log('Solution steps:', steps);
+    return steps;
   };
 
   const isPuzzleSolved = (shapes) => {
@@ -708,6 +577,39 @@ export default function Home() {
       
       return true;
     });
+  };
+
+  const findNextMove = (shapes) => {
+    // Her oyuncu için kontrol et
+    for (let fromPlayer = 0; fromPlayer < shapes.length; fromPlayer++) {
+      const fromPlayerShapes = shapes[fromPlayer].shapes;
+      const fromPlayerMainShape = shapes[fromPlayer].mainShape;
+      
+      // Oyuncunun elindeki her şekli kontrol et
+      for (const shape of fromPlayerShapes) {
+        // Sadece oyuncunun ana şeklini gönderebilir
+        if (shape !== fromPlayerMainShape) continue;
+        
+        // Her alıcı oyuncu için kontrol et
+        for (let toPlayer = 0; toPlayer < shapes.length; toPlayer++) {
+          // Kendine transfer yapamaz
+          if (fromPlayer === toPlayer) continue;
+          
+          const toPlayerShapes = shapes[toPlayer].shapes;
+          const toPlayerMainShape = shapes[toPlayer].mainShape;
+          
+          // Alıcı oyuncunun ana şekli bu şekilse transfer edemez
+          if (shape === toPlayerMainShape) continue;
+          
+          // Alıcı oyuncunun elinde bu şekil yoksa transfer edebilir
+          if (!toPlayerShapes.includes(shape)) {
+            return { fromPlayer, toPlayer, shape };
+          }
+        }
+      }
+    }
+    
+    return null;
   };
 
   const getCurrentState = () => {
