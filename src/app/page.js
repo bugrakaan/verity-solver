@@ -1,15 +1,16 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import './page.css'
+import './page.scss'
 import Image from "next/image";
+import CustomDropdown from '@/components/CustomDropdown';
 
 export default function Home() {
   const [selectedShapes, setSelectedShapes] = useState([]);
   const [activeColumn, setActiveColumn] = useState(1);
   const [activeSubShapeGroup, setActiveSubShapeGroup] = useState(0);
   const [isLiveMode, setIsLiveMode] = useState(true);
-  const [noDoubles, setNoDoubles] = useState(false);
+  const [optionsMode, setOptionsMode] = useState('random');
   const [selectedSubShapes, setSelectedSubShapes] = useState([
     { mainShape: null, shapes: [null, null] },
     { mainShape: null, shapes: [null, null] },
@@ -22,6 +23,13 @@ export default function Home() {
   const [currentStep, setCurrentStep] = useState(0);
   const [guidanceMessage, setGuidanceMessage] = useState('Please select a shape for Player 1');
   const [isGuidanceSuccess, setIsGuidanceSuccess] = useState(false);
+  const [selectedOption, setSelectedOption] = useState('option1');
+
+  const options = [
+    { value: 'option1', label: 'Option 1' },
+    { value: 'option2', label: 'Option 2' },
+    { value: 'option3', label: 'Option 3' },
+  ];
 
   useEffect(() => {
     // Set initial guidance message after playerNames is loaded
@@ -267,55 +275,109 @@ export default function Home() {
     }
   };
 
+  const validateSubShapes = (subShapes) => {
+    // 1. 3 farklı grup kontrolü
+    if (subShapes.length !== 3) return false;
+
+    // 2. Her grubun shapes arrayinin 2 değer içerdiği kontrolü
+    if (!subShapes.every(group => group.shapes.length === 2)) return false;
+
+    // 3. MainShape'lerin farklı olduğu kontrolü
+    const mainShapes = subShapes.map(group => group.mainShape);
+    if (new Set(mainShapes).size !== 3) return false;
+
+    // 4. Toplam 6 şekil kontrolü
+    const allShapes = subShapes.flatMap(group => group.shapes);
+    if (allShapes.length !== 6) return false;
+
+    // 5. Her şeklin 2'den az veya 2'den fazla tekrarlanmadığı kontrolü
+    const shapeCounts = {};
+    allShapes.forEach(shape => {
+      shapeCounts[shape] = (shapeCounts[shape] || 0) + 1;
+    });
+    
+    return Object.values(shapeCounts).every(count => count === 2);
+  };
+
   const generateNewSubShapes = (mainShapes) => {
     console.log('Alt şekiller oluşturuluyor...');
     console.log('Ana şekiller:', mainShapes);
     
-    let newSubShapes = selectedSubShapes.map((group, index) => ({
-      mainShape: mainShapes[index],
-      shapes: [null, null]
-    }));
-    let isSameAsPrevious = true;
-    let hasDouble = true;
+    let newSubShapes;
+    let maxAttempts = 50; // Maksimum deneme sayısını artırdık
+    let attempts = 0;
+    let isValid = false;
     
-    // Aynı sıralama olmayana kadar döngü
-    while (isSameAsPrevious || (noDoubles && hasDouble)) {
-      // Her sütun için alt şekilleri belirle
-      mainShapes.forEach((mainShape, index) => {
-        // İlk alt şekil her zaman ana şekil olacak
-        newSubShapes[index].shapes[0] = mainShape;
-      });
-
-      // Tüm şekilleri bir listeye al ve shuffle et
-      let availableShapes = [...mainShapes];
-      availableShapes = availableShapes.sort(() => Math.random() - 0.5);
-
-      console.log('Karıştırılmış şekiller:', availableShapes);
-
-      // Her sütun için ikinci alt şekli belirle
-      mainShapes.forEach((_, index) => {
-        // İkinci alt şekil için shuffled listesinden ilk öğeyi al
-        newSubShapes[index].shapes[1] = availableShapes[0];
-        // Kullanılan şekli listeden çıkar
-        availableShapes = availableShapes.slice(1);
-      });
-
-      // Önceki sıralama ile aynı mı kontrol et
-      isSameAsPrevious = newSubShapes.every((group, index) => {
-        const previousGroup = selectedSubShapes[index];
-        return (
-          group.mainShape === previousGroup.mainShape &&
-          group.shapes[0] === previousGroup.shapes[0] &&
-          group.shapes[1] === previousGroup.shapes[1]
-        );
-      });
-
-      // No Doubles kontrolü
-      hasDouble = newSubShapes.some(group => group.shapes[0] === group.shapes[1]);
+    do {
+      newSubShapes = selectedSubShapes.map((group, index) => ({
+        mainShape: mainShapes[index],
+        shapes: [mainShapes[index], null] // İlk shape her zaman mainShape olacak
+      }));
       
-      if (isSameAsPrevious || (noDoubles && hasDouble)) {
-        console.log('Aynı sıralama veya çift şekil üretildi, tekrar deneniyor...');
+      // Tüm şekilleri bir listeye al
+      let availableShapes = [...mainShapes];
+      
+      if (optionsMode === 'noDouble') {
+        // Her grup için ikinci shape'i rastgele seç, ama aynı shape'den olmasın
+        mainShapes.forEach((_, index) => {
+          const remainingShapes = availableShapes.filter(shape => shape !== newSubShapes[index].mainShape);
+          const randomIndex = Math.floor(Math.random() * remainingShapes.length);
+          newSubShapes[index].shapes[1] = remainingShapes[randomIndex];
+        });
+      } else if (optionsMode === 'oneDouble') {
+        // Rastgele bir grup seç ve orada double olsun
+        const doubleGroupIndex = Math.floor(Math.random() * 3);
+        newSubShapes[doubleGroupIndex].shapes[1] = newSubShapes[doubleGroupIndex].mainShape;
+        
+        // Diğer iki grup için farklı shape'ler seç
+        const otherGroups = [0, 1, 2].filter(i => i !== doubleGroupIndex);
+        
+        // İlk seçilen mainShape'i bul
+        const firstMainShape = newSubShapes[doubleGroupIndex].mainShape;
+        
+        // Diğer iki grup için shape'leri belirle
+        otherGroups.forEach((groupIndex, i) => {
+          // Bu grubun mainShape'ini al
+          const currentMainShape = newSubShapes[groupIndex].mainShape;
+          
+          // Kullanılabilir shape'leri bul (mainShape ve ilk seçilen mainShape hariç)
+          const availableShapes = ['circle', 'triangle', 'square'].filter(shape => 
+            shape !== currentMainShape && shape !== firstMainShape
+          );
+          
+          // Kalan tek shape'i seç
+          newSubShapes[groupIndex].shapes[1] = availableShapes[0];
+        });
+      } else if (optionsMode === 'threeDoubles') {
+        // Tüm gruplarda ikinci shape mainShape ile aynı olsun
+        newSubShapes.forEach(group => {
+          group.shapes[1] = group.mainShape;
+        });
+      } else {
+        // Random modu - her grupta ikinci shape rastgele seçilsin
+        mainShapes.forEach((_, index) => {
+          const randomIndex = Math.floor(Math.random() * availableShapes.length);
+          newSubShapes[index].shapes[1] = availableShapes[randomIndex];
+        });
       }
+
+      attempts++;
+      
+      // Üretilen setin geçerli olup olmadığını kontrol et
+      isValid = validateSubShapes(newSubShapes);
+      
+      // Eğer maksimum deneme sayısına ulaşıldıysa döngüyü kır
+      if (attempts >= maxAttempts) {
+        console.log('Maksimum deneme sayısına ulaşıldı, geçerli bir set bulunamadı');
+        break;
+      }
+      
+      // Yeni set geçerli ve mevcut setten farklıysa döngüyü kır
+    } while (!isValid || JSON.stringify(newSubShapes) === JSON.stringify(selectedSubShapes));
+
+    if (!isValid) {
+      console.log('Geçerli bir set üretilemedi, mevcut set kullanılıyor');
+      return;
     }
 
     console.log('Son alt şekiller:', newSubShapes);
@@ -445,7 +507,7 @@ export default function Home() {
     if (!isLiveMode && selectedShapes.length === 3 && selectedShapes.every(shape => shape !== null)) {
       generateNewSubShapes(selectedShapes);
     }
-  }, [noDoubles]);
+  }, [optionsMode]);
 
   const resetPuzzle = () => {
     setSelectedShapes([]);
@@ -492,14 +554,9 @@ export default function Home() {
     console.log('Starting solution simulation...');
     console.log('Initial state:', selectedSubShapes);
 
-    // Her oyuncunun başlangıç durumunu kopyala
-    const initialShapes = selectedSubShapes.map(group => ({
-      mainShape: group.mainShape,
-      shapes: [...group.shapes]
-    }));
 
     const steps = [];
-    let currentShapes = JSON.parse(JSON.stringify(initialShapes));
+    let currentShapes = JSON.parse(JSON.stringify(selectedSubShapes));
     let stepNumber = 1;
     const MAX_ITERATIONS = 1000;
 
@@ -774,19 +831,25 @@ export default function Home() {
                           }
                         }}
                       >
-                        ↻
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4C7.58 4 4.01 7.58 4.01 12C4.01 16.42 7.58 20 12 20C15.73 20 18.84 17.45 19.73 14H17.65C16.83 16.33 14.61 18 12 18C8.69 18 6 15.31 6 12C6 8.69 8.69 6 12 6C13.66 6 15.14 6.69 16.22 7.78L13 11H20V4L17.65 6.35Z" fill="currentColor"/>
+                        </svg>
                       </button>
                     )}
                   </div>
                   {!isLiveMode && (
-                    <div className="noDoublesCheckbox">
-                      <input
-                        type="checkbox"
-                        id="noDoubles"
-                        checked={noDoubles}
-                        onChange={(e) => setNoDoubles(e.target.checked)}
+                    <div className="optionsDropdown">
+                      <CustomDropdown
+                        options={[
+                          { value: 'random', label: 'Random' },
+                          { value: 'noDouble', label: 'No Double' },
+                          { value: 'oneDouble', label: 'One Double' },
+                          { value: 'threeDoubles', label: 'Three Doubles' }
+                        ]}
+                        value={optionsMode}
+                        onChange={(value) => setOptionsMode(value)}
+                        size="small"
                       />
-                      <label htmlFor="noDoubles">No Doubles</label>
                     </div>
                   )}
                 </div>
